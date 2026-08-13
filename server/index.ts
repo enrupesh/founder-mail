@@ -144,11 +144,22 @@ app.post("/api/webhooks/resend", async (req, res) => {
 });
 
 async function start() {
-  const vite = await createViteServer({
-    server: { middlewareMode: true, host: "0.0.0.0" },
-    appType: "spa",
-  });
-  app.use(vite.middlewares);
+  if (process.env.NODE_ENV === "production") {
+    const distPath = path.resolve("dist");
+    app.use(express.static(distPath));
+    app.use((req, res, next) => {
+      if (req.method === "GET" && !req.path.startsWith("/api")) {
+        return res.sendFile(path.join(distPath, "index.html"));
+      }
+      next();
+    });
+  } else {
+    const vite = await createViteServer({
+      server: { middlewareMode: true, host: "0.0.0.0" },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  }
 
   app.listen(port, "0.0.0.0", () => {
     console.log(`Founder Mail running on port ${port}`);

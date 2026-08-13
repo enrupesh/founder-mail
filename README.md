@@ -10,6 +10,14 @@ npm run dev
 
 The app runs on port 5000. Add `RESEND_API_KEY` as a Replit Secret to enable sending.
 
+## Deploy on Render
+
+- **Service type:** Web Service
+- **Build command:** `npm ci && npm run build`
+- **Start command:** `npm start`
+- **Environment variable:** `RESEND_API_KEY`
+- Render provides the `PORT` value automatically.
+
 ## Resend setup
 
 1. Verify `founder.rolebolt.tech` in Resend and use `rolebolt@founder.rolebolt.tech` as the sender.

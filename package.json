@@ -5,6 +5,7 @@
   "main": "server/index.ts",
   "scripts": {
     "dev": "tsx server/index.ts",
+    "start": "NODE_ENV=production tsx server/index.ts",
     "build": "vite build",
     "check": "tsc --noEmit"
   },
