@@ -8,6 +8,7 @@ import { createServer as createViteServer } from "vite";
 const app = express();
 const port = Number(process.env.PORT || 5000);
 const sender = "rolebolt@founder.rolebolt.tech";
+const websiteUrl = "https://www.rolebolt.tech/";
 const dataPath = path.resolve("data/messages.json");
 const accessCookieName = "founder_mail_access";
 const accessCookieMaxAge = 60 * 60 * 24 * 365;
@@ -46,6 +47,64 @@ function hasWebhookSecret() {
 
 function hasSitePassword() {
   return Boolean(process.env.SITE_PASSWORD);
+}
+
+function escapeHtml(value: string) {
+  return value.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
+      })[character] || character,
+  );
+}
+
+function textToEmailHtml(value: string) {
+  return value
+    .trim()
+    .split(/\n{2,}/)
+    .map(
+      (paragraph) =>
+        `<p style="margin:0 0 18px;color:#4e6782;font-size:16px;line-height:1.75;">${escapeHtml(paragraph).replace(/\n/g, "<br />")}</p>`,
+    )
+    .join("");
+}
+
+function buildEmailHtml(subject: string, text: string) {
+  return `<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /></head>
+  <body style="margin:0;background:#f4f8fc;color:#132a43;font-family:Arial,Helvetica,sans-serif;">
+    <div style="padding:36px 16px;">
+      <div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #dce8f3;border-radius:18px;overflow:hidden;box-shadow:0 12px 35px rgba(23,76,128,.08);">
+        <div style="height:5px;background:#0d6dcc;"></div>
+        <div style="padding:28px 34px 22px;border-bottom:1px solid #e7eef5;">
+          <a href="${websiteUrl}" style="color:#132a43;text-decoration:none;font-size:18px;font-weight:700;">
+            <span style="display:inline-block;width:30px;height:30px;margin-right:10px;border-radius:9px;background:#0d6dcc;color:#ffffff;line-height:30px;text-align:center;vertical-align:middle;font-size:16px;">R</span>
+            <span style="vertical-align:middle;">Rolebolt</span>
+          </a>
+        </div>
+        <div style="padding:34px 34px 26px;">
+          <div style="margin-bottom:12px;color:#0d6dcc;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">A note from Rolebolt</div>
+          <h1 style="margin:0 0 22px;color:#132a43;font-size:30px;line-height:1.2;letter-spacing:-.7px;">${escapeHtml(subject)}</h1>
+          ${textToEmailHtml(text)}
+        </div>
+        <div style="padding:22px 34px 28px;background:#f7faff;border-top:1px solid #e7eef5;">
+          <div style="color:#132a43;font-size:14px;font-weight:700;">Rolebolt</div>
+          <div style="margin-top:6px;color:#7189a1;font-size:13px;line-height:1.6;">Thoughtful hiring. Clearer work.</div>
+          <a href="${websiteUrl}" style="display:inline-block;margin-top:12px;color:#0d6dcc;font-size:13px;font-weight:700;text-decoration:none;">www.rolebolt.tech&nbsp;→</a>
+        </div>
+      </div>
+      <div style="max-width:640px;margin:16px auto 0;color:#91a4b7;font-size:11px;line-height:1.6;text-align:center;">
+        Sent from Founder Mail · Rolebolt
+      </div>
+    </div>
+  </body>
+</html>`;
 }
 
 function getCookies(req: Request) {
@@ -346,13 +405,14 @@ app.post("/api/send", async (req, res) => {
     });
   }
 
+  const html = buildEmailHtml(subject, text);
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from: sender, to: [to], subject, text }),
+    body: JSON.stringify({ from: sender, to: [to], subject, text, html }),
   });
 
   const payload = (await response.json()) as { id?: string; message?: string };
@@ -370,6 +430,7 @@ app.post("/api/send", async (req, res) => {
     to,
     subject,
     text,
+    html,
     timestamp: new Date().toISOString(),
     status: "sent",
     read: true,

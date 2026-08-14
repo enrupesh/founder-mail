@@ -506,6 +506,10 @@ function App() {
             <label>TO<input type="email" required value={compose.to} onChange={(event) => setCompose({ ...compose, to: event.target.value })} placeholder="recipient@example.com" /></label>
             <label>SUBJECT<input required value={compose.subject} onChange={(event) => setCompose({ ...compose, subject: event.target.value })} placeholder="What's this about?" /></label>
             <label>MESSAGE<textarea required rows={7} value={compose.text} onChange={(event) => setCompose({ ...compose, text: event.target.value })} placeholder="Write your message…" /></label>
+            <div className="template-note">
+              <span className="template-note-dot" />
+              Founder template includes a polished Rolebolt footer and website link.
+            </div>
             <div className="modal-actions">
               <span>{status.configured ? "Sent securely via Resend" : "Resend API key required"}</span>
               <button className="send-button" type="submit" disabled={sending}>

@@ -28,6 +28,8 @@ The app stores the latest messages in `data/messages.json`; no database is requi
 
 The Rolebolt logo is used throughout the mailbox UI for the sender identity and sent-message avatars. Recipient inbox profile images are controlled by the receiving mail provider; showing the logo there requires domain-level BIMI and DMARC configuration.
 
+Outgoing mail is sent with both a plain-text fallback and a responsive HTML wrapper: Rolebolt branding, a restrained founder-style layout, and a footer link to `https://www.rolebolt.tech/`.
+
 Set both `RESEND_API_KEY` and the webhook signing secret from Resend (`RESEND_WEBHOOK_SECRET`). The webhook endpoint only processes signed `POST` requests; a `GET` request is only a health check.
 
 ## Private workspace gate
