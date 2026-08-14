@@ -1,0 +1,1 @@
+- [Portable npm lockfiles](portable-npm-lockfiles.md) — lockfiles generated behind Replit's package firewall must not embed internal tarball URLs when deployed elsewhere.

@@ -13,7 +13,7 @@ The app runs on port 5000. Add `RESEND_API_KEY` as a Replit Secret to enable sen
 ## Deploy on Render
 
 - **Service type:** Web Service
-- **Build command:** `npm install --registry=https://registry.npmjs.org --no-audit --no-fund && npm run build`
+- **Build command:** `npm ci --registry=https://registry.npmjs.org --no-audit --no-fund && npm run build`
 - **Start command:** `npm start`
 - **Environment variable:** `RESEND_API_KEY`
 - Render provides the `PORT` value automatically.
