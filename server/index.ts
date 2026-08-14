@@ -153,6 +153,9 @@ function publicRequest(req: Request) {
     req.path === "/api/health" ||
     req.path === "/api/webhooks/resend" ||
     req.path === "/favicon.svg" ||
+    req.path === "/rolebolt-logo.png" ||
+    req.path === "/manifest.webmanifest" ||
+    req.path === "/sw.js" ||
     req.path === "/blocked-art.svg" ||
     req.path.startsWith("/assets/") ||
     req.path.startsWith("/@") ||

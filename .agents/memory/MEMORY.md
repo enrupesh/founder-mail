@@ -1,2 +1,3 @@
 - [Portable npm lockfiles](portable-npm-lockfiles.md) — lockfiles generated behind Replit's package firewall must not embed internal tarball URLs when deployed elsewhere.
 - [Mailbox deletion state](mailbox-deletion-state.md) — locally deleted synced messages need tombstones or a later provider sync will restore them.
+- [Private gate assets](private-gate-assets.md) — public login screens must explicitly allowlist every image and PWA asset they load.
