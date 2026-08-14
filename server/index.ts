@@ -75,6 +75,14 @@ function textToEmailHtml(value: string) {
     .join("");
 }
 
+function cleanReceivedText(value: string) {
+  const normalized = value.replace(/\r\n/g, "\n").trim();
+  const separator = normalized.search(
+    /\n(?:On [^\n]{3,240} wrote:|-{2,}\s*Original Message\s*-{2,}|Begin forwarded message:)\s*\n/i,
+  );
+  return (separator >= 0 ? normalized.slice(0, separator) : normalized).trim();
+}
+
 function buildEmailHtml(subject: string, text: string) {
   return `<!doctype html>
 <html lang="en">
@@ -247,7 +255,7 @@ function receivedMessageFrom(
   const to = Array.isArray(toValue) ? String(toValue[0] || sender) : String(toValue || sender);
   const from = String(content?.from || data.from || data.sender || "unknown sender");
   const subject = String(content?.subject || data.subject || "(no subject)");
-  const text = String(content?.text || data.text || data.body || "");
+  const text = cleanReceivedText(String(content?.text || data.text || data.body || ""));
   const id = String(content?.id || data.email_id || data.id || `received-${Date.now()}`);
 
   return {
@@ -408,16 +416,38 @@ app.post("/api/messages/:id/read", async (req, res) => {
   res.json(message);
 });
 
+async function deleteMessageIds(ids: string[]) {
+  const uniqueIds = [...new Set(ids)];
+  const messages = await readMessages();
+  const foundIds = uniqueIds.filter((id) => messages.some((message) => message.id === id));
+  if (foundIds.length === 0) return [];
+
+  const deletedIds = await readDeletedMessageIds();
+
+  foundIds.forEach((id) => deletedIds.add(id));
+  await writeDeletedMessageIds(deletedIds);
+  await writeMessages(messages.filter((message) => !foundIds.includes(message.id)));
+  return foundIds;
+}
+
+app.delete("/api/messages", async (req, res) => {
+  const ids = Array.isArray(req.body?.ids)
+    ? req.body.ids.filter((id: unknown): id is string => typeof id === "string" && id.length > 0)
+    : [];
+  if (ids.length === 0) return res.status(400).json({ error: "At least one message is required." });
+
+  const deletedIds = await deleteMessageIds(ids);
+  if (deletedIds.length === 0) return res.status(404).json({ error: "No matching messages found." });
+  res.json({ ok: true, deletedIds });
+});
+
 app.delete("/api/messages/:id", async (req, res) => {
   const id = req.params.id;
   const messages = await readMessages();
   const message = messages.find((item) => item.id === id);
   if (!message) return res.status(404).json({ error: "Message not found" });
 
-  const deletedIds = await readDeletedMessageIds();
-  deletedIds.add(id);
-  await writeDeletedMessageIds(deletedIds);
-  await writeMessages(messages.filter((item) => item.id !== id));
+  await deleteMessageIds([id]);
   res.json({ ok: true, id });
 });
 

@@ -160,6 +160,7 @@ function App() {
   const [sending, setSending] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const load = async (sync = false) => {
     setSyncing(sync);
@@ -196,6 +197,9 @@ function App() {
       }),
     [visibleMessages, query],
   );
+  const filteredIds = filtered.map((message) => message.id);
+  const allFilteredSelected =
+    filteredIds.length > 0 && filteredIds.every((id) => selectedIds.includes(id));
   const active = messages.find((message) => message.id === activeId) || null;
   const viewTitle = view === "inbox" ? "Inbox" : "Sent";
 
@@ -223,10 +227,58 @@ function App() {
         return;
       }
       setMessages((current) => current.filter((message) => message.id !== active.id));
+      setSelectedIds((current) => current.filter((id) => id !== active.id));
       setActiveId(null);
       setNotice("Email deleted permanently.");
     } catch {
       setNotice("Could not delete the email. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((selectedId) => selectedId !== id) : [...current, id],
+    );
+  };
+
+  const toggleAllFiltered = () => {
+    setSelectedIds((current) => {
+      if (allFilteredSelected) {
+        return current.filter((id) => !filteredIds.includes(id));
+      }
+      return [...new Set([...current, ...filteredIds])];
+    });
+  };
+
+  const deleteSelected = async () => {
+    if (selectedIds.length === 0 || deleting) return;
+    if (!window.confirm(`Permanently delete ${selectedIds.length} selected email${selectedIds.length === 1 ? "" : "s"}?`)) {
+      return;
+    }
+
+    setDeleting(true);
+    setNotice("");
+    try {
+      const response = await fetch("/api/messages", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedIds }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        setNotice(result.error || "Could not delete the selected emails.");
+        return;
+      }
+
+      const deletedIds = result.deletedIds as string[];
+      setMessages((current) => current.filter((message) => !deletedIds.includes(message.id)));
+      setSelectedIds((current) => current.filter((id) => !deletedIds.includes(id)));
+      if (activeId && deletedIds.includes(activeId)) setActiveId(null);
+      setNotice(`${deletedIds.length} email${deletedIds.length === 1 ? "" : "s"} deleted permanently.`);
+    } catch {
+      setNotice("Could not delete the selected emails. Please try again.");
     } finally {
       setDeleting(false);
     }
@@ -267,6 +319,7 @@ function App() {
     setView(nextView);
     setActiveId(null);
     setQuery("");
+    setSelectedIds([]);
   };
 
   return (
@@ -414,14 +467,27 @@ function App() {
               <h2>{viewTitle}</h2>
               <span>{visibleMessages.length} {visibleMessages.length === 1 ? "message" : "messages"}</span>
             </div>
-            <label className="search">
-              <Icon name="search" />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder={`Search ${viewTitle.toLowerCase()}`}
-              />
-            </label>
+            <div className="toolbar-actions">
+              {filtered.length > 0 && (
+                <button className="select-all-button" onClick={toggleAllFiltered}>
+                  {allFilteredSelected ? "Clear selection" : "Select all"}
+                </button>
+              )}
+              {selectedIds.length > 0 && (
+                <button className="bulk-delete-button" onClick={() => void deleteSelected()} disabled={deleting}>
+                  <Icon name="trash" />
+                  {deleting ? "Deleting…" : `Delete ${selectedIds.length}`}
+                </button>
+              )}
+              <label className="search">
+                <Icon name="search" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder={`Search ${viewTitle.toLowerCase()}`}
+                />
+              </label>
+            </div>
           </div>
 
           <div className="mail-layout">
@@ -440,24 +506,33 @@ function App() {
                 </div>
               ) : (
                 filtered.map((message) => (
-                  <button
-                    key={message.id}
-                    className={`message-row ${activeId === message.id ? "selected" : ""} ${!message.read ? "unread" : ""}`}
-                    onClick={() => void selectMessage(message)}
-                  >
-                    <div className={`mail-avatar ${message.direction}`}>
-                      {message.direction === "outbound" ? <Logo /> : initials(message.from)}
-                    </div>
-                    <div className="message-copy">
-                      <div className="message-meta">
-                        <strong>{message.direction === "inbound" ? message.from : `To ${message.to}`}</strong>
-                        <time>{formatDate(message.timestamp)}</time>
+                  <div className="message-row-wrap" key={message.id}>
+                    <label className="message-select" title={`Select ${message.subject}`}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(message.id)}
+                        onChange={() => toggleSelected(message.id)}
+                        aria-label={`Select ${message.subject}`}
+                      />
+                    </label>
+                    <button
+                      className={`message-row ${activeId === message.id ? "selected" : ""} ${!message.read ? "unread" : ""}`}
+                      onClick={() => void selectMessage(message)}
+                    >
+                      <div className={`mail-avatar ${message.direction}`}>
+                        {message.direction === "outbound" ? <Logo /> : initials(message.from)}
                       </div>
-                      <h3>{message.subject}</h3>
-                      <p>{message.text || "No preview available yet — sync inbox to retrieve the message."}</p>
-                    </div>
-                    {!message.read && <span className="unread-dot" />}
-                  </button>
+                      <div className="message-copy">
+                        <div className="message-meta">
+                          <strong>{message.direction === "inbound" ? message.from : `To ${message.to}`}</strong>
+                          <time>{formatDate(message.timestamp)}</time>
+                        </div>
+                        <h3>{message.subject}</h3>
+                        <p>{message.text || "No preview available yet — sync inbox to retrieve the message."}</p>
+                      </div>
+                      {!message.read && <span className="unread-dot" />}
+                    </button>
+                  </div>
                 ))
               )}
             </div>

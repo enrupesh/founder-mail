@@ -149,13 +149,23 @@ code { padding: 2px 4px; border-radius: 3px; background: #e7f1fa; font: 10px "DM
 .section-title { display: flex; align-items: baseline; gap: 10px; }
 .section-title h2 { font-size: 17px; letter-spacing: -.04em; }
 .section-title span { color: #8da4b8; font-size: 11px; }
+.toolbar-actions { display: flex; align-items: center; gap: 10px; }
+.select-all-button, .bulk-delete-button { display: inline-flex; align-items: center; gap: 6px; padding: 7px 9px; border: 1px solid #cfe0ef; border-radius: 6px; color: #0d62b8; background: #fff; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.select-all-button:hover { border-color: #9dc6e7; background: #f6fbff; }
+.bulk-delete-button { border-color: #e7caca; color: #a34c4c; }
+.bulk-delete-button:hover { border-color: #d6a3a3; background: #fff7f7; }
+.bulk-delete-button:disabled { cursor: wait; opacity: .6; }
+.bulk-delete-button svg { width: 13px; height: 13px; }
 .search { width: 205px; display: flex; align-items: center; gap: 7px; padding: 4px 0 8px; border-bottom: 1px solid #dce8f3; color: #8aa0b4; }
 .search svg { width: 14px; height: 14px; }
 .search input { width: 100%; border: 0; outline: 0; color: #354145; background: transparent; font-size: 11px; }
 .search input::placeholder { color: #b1b9b7; }
 .mail-layout { display: grid; grid-template-columns: minmax(360px, .92fr) minmax(400px, 1.08fr); min-height: 370px; }
 .message-list { border-right: 1px solid #dce8f3; padding-top: 5px; }
-.message-row { position: relative; width: 100%; display: flex; align-items: flex-start; gap: 12px; padding: 17px 19px 16px 3px; border: 0; border-bottom: 1px solid #e3edf5; color: #132a43; background: transparent; text-align: left; transition: .15s; }
+.message-row-wrap { display: flex; align-items: stretch; border-bottom: 1px solid #e3edf5; }
+.message-select { display: grid; width: 32px; flex: none; place-items: center; cursor: pointer; }
+.message-select input { width: 13px; height: 13px; margin: 0; accent-color: #0d6dcc; cursor: pointer; }
+.message-row { position: relative; width: 100%; display: flex; align-items: flex-start; gap: 12px; padding: 17px 19px 16px 3px; border: 0; color: #132a43; background: transparent; text-align: left; transition: .15s; }
 .message-row:hover, .message-row.selected { background: #edf6fe; }
 .message-row.selected { padding-left: 1px; border-left: 2px solid #0d6dcc; }
 .mail-avatar { width: 31px; height: 31px; display: grid; place-items: center; overflow: hidden; flex: none; border-radius: 50%; color: #0d62b8; background: #e1f1fc; font: 600 9px "DM Mono"; }
@@ -241,6 +251,9 @@ code { padding: 2px 4px; border-radius: 3px; background: #e7f1fa; font: 10px "DM
   .top-actions { gap: 10px; }
   .live-pill { font-size: 10px; }
   .content { padding: 30px 17px 50px; }
+  .inbox-toolbar { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .toolbar-actions { width: 100%; flex-wrap: wrap; }
+  .toolbar-actions .search { flex: 1; min-width: 150px; }
   .page-heading { align-items: flex-start; flex-direction: column; margin-bottom: 24px; }
   .refresh-button { width: 100%; justify-content: center; }
   .metrics { gap: 7px; margin-bottom: 30px; }
