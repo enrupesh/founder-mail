@@ -22,6 +22,11 @@ type Status = {
 type View = "inbox" | "sent";
 
 const initialCompose = { to: "", subject: "", text: "" };
+const roleboltLogo = "/rolebolt-logo.png";
+
+function Logo({ className = "" }: { className?: string }) {
+  return <img className={`rolebolt-logo ${className}`} src={roleboltLogo} alt="Rolebolt logo" />;
+}
 
 function Icon({
   name,
@@ -105,7 +110,7 @@ function BlockedPage() {
           <span className="blocked-art-label">PRIVATE WORKSPACE</span>
         </div>
         <div className="blocked-copy">
-          <div className="brand-mark">R</div>
+          <div className="brand-mark"><Logo /></div>
           <span className="blocked-kicker">FOUNDER MAIL</span>
           <h1>This workspace is private.</h1>
           <p>Enter the access password to continue to the Rolebolt mailbox.</p>
@@ -242,7 +247,7 @@ function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark">R</div>
+          <div className="brand-mark"><Logo /></div>
           <div>
             <strong>Founder Mail</strong>
             <span>Rolebolt workspace</span>
@@ -289,7 +294,7 @@ function App() {
             <Icon name="settings" />
           </div>
           <div className="user-row">
-            <div className="avatar">RB</div>
+            <div className="avatar"><Logo /></div>
             <div>
               <strong>Rolebolt</strong>
               <span>{status.address}</span>
@@ -414,7 +419,9 @@ function App() {
                     className={`message-row ${activeId === message.id ? "selected" : ""} ${!message.read ? "unread" : ""}`}
                     onClick={() => void selectMessage(message)}
                   >
-                    <div className={`mail-avatar ${message.direction}`}>{initials(message.from)}</div>
+                    <div className={`mail-avatar ${message.direction}`}>
+                      {message.direction === "outbound" ? <Logo /> : initials(message.from)}
+                    </div>
                     <div className="message-copy">
                       <div className="message-meta">
                         <strong>{message.direction === "inbound" ? message.from : `To ${message.to}`}</strong>
@@ -433,7 +440,9 @@ function App() {
               {active ? (
                 <>
                   <div className="detail-header">
-                    <div className={`mail-avatar large ${active.direction}`}>{initials(active.from)}</div>
+                    <div className={`mail-avatar large ${active.direction}`}>
+                      {active.direction === "outbound" ? <Logo /> : initials(active.from)}
+                    </div>
                     <div>
                       <span className="detail-label">
                         {active.direction === "inbound" ? "RECEIVED" : "SENT"} · {formatDate(active.timestamp)} · {formatTime(active.timestamp)}
@@ -490,7 +499,10 @@ function App() {
                 <Icon name="close" />
               </button>
             </div>
-            <div className="from-line"><span>From</span><strong>{status.address}</strong></div>
+            <div className="from-line">
+              <div className="from-line-avatar"><Logo /></div>
+              <span>From</span><strong>{status.address}</strong>
+            </div>
             <label>TO<input type="email" required value={compose.to} onChange={(event) => setCompose({ ...compose, to: event.target.value })} placeholder="recipient@example.com" /></label>
             <label>SUBJECT<input required value={compose.subject} onChange={(event) => setCompose({ ...compose, subject: event.target.value })} placeholder="What's this about?" /></label>
             <label>MESSAGE<textarea required rows={7} value={compose.text} onChange={(event) => setCompose({ ...compose, text: event.target.value })} placeholder="Write your message…" /></label>

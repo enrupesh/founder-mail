@@ -26,6 +26,8 @@ The app runs on port 5000. Add `RESEND_API_KEY` as a Replit Secret to enable sen
 
 The app stores the latest messages in `data/messages.json`; no database is required. Incoming mail is delivered to the inbox through the Resend webhook. Because Resend's `email.received` webhook contains metadata only, the app also retrieves the full received email from the Receiving API and can backfill messages when the inbox is refreshed.
 
+The Rolebolt logo is used throughout the mailbox UI for the sender identity and sent-message avatars. Recipient inbox profile images are controlled by the receiving mail provider; showing the logo there requires domain-level BIMI and DMARC configuration.
+
 Set both `RESEND_API_KEY` and the webhook signing secret from Resend (`RESEND_WEBHOOK_SECRET`). The webhook endpoint only processes signed `POST` requests; a `GET` request is only a health check.
 
 ## Private workspace gate

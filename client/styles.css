@@ -59,9 +59,10 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 }
 .brand { display: flex; align-items: center; gap: 11px; padding: 0 11px 34px; }
 .brand-mark {
-  width: 31px; height: 31px; display: grid; place-items: center; border-radius: 9px;
-  color: #fff; background: #153f3a; font-size: 14px; font-weight: 700;
+  width: 31px; height: 31px; display: grid; place-items: center; overflow: hidden; border-radius: 9px;
+  background: #1769ed;
 }
+.rolebolt-logo { display: block; width: 100%; height: 100%; object-fit: cover; }
 .brand strong, .user-row strong, .connection-card strong { display: block; font-size: 13px; letter-spacing: -.01em; }
 .brand span, .user-row span, .connection-card span { display: block; color: #8a9797; font-size: 10px; margin-top: 3px; }
 .compose-button, .send-button {
@@ -92,7 +93,7 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .connection-card.connected .status-dot { background: #35a57b; box-shadow: 0 0 0 3px #d8f0e6; }
 .status-dot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: #d39a45; }
 .user-row { display: flex; align-items: center; gap: 9px; padding: 22px 7px 0; }
-.avatar { width: 29px; height: 29px; display: grid; place-items: center; border-radius: 50%; color: #176a5a; background: #e2eee9; font-size: 9px; font-weight: 700; }
+.avatar { width: 29px; height: 29px; display: grid; place-items: center; overflow: hidden; border-radius: 50%; color: #176a5a; background: #e2eee9; font-size: 9px; font-weight: 700; }
 
 .main { width: calc(100% - 246px); min-width: 0; }
 .topbar {
@@ -157,7 +158,7 @@ code { padding: 2px 4px; border-radius: 3px; background: #f4ecd9; font: 10px "DM
 .message-row { position: relative; width: 100%; display: flex; align-items: flex-start; gap: 12px; padding: 17px 19px 16px 3px; border: 0; border-bottom: 1px solid #e3eae7; color: #17242a; background: transparent; text-align: left; transition: .15s; }
 .message-row:hover, .message-row.selected { background: #edf6f2; }
 .message-row.selected { padding-left: 1px; border-left: 2px solid #167361; }
-.mail-avatar { width: 31px; height: 31px; display: grid; place-items: center; flex: none; border-radius: 50%; color: #176b5a; background: #e1eee9; font: 600 9px "DM Mono"; }
+.mail-avatar { width: 31px; height: 31px; display: grid; place-items: center; overflow: hidden; flex: none; border-radius: 50%; color: #176b5a; background: #e1eee9; font: 600 9px "DM Mono"; }
 .mail-avatar.outbound { color: #706c87; background: #eae9f0; }
 .mail-avatar.large { width: 41px; height: 41px; font-size: 11px; }
 .message-copy { min-width: 0; flex: 1; }
@@ -195,7 +196,8 @@ code { padding: 2px 4px; border-radius: 3px; background: #f4ecd9; font: 10px "DM
 .compose-modal { width: min(520px, 100%); padding: 26px; border-radius: 12px; background: #fff; box-shadow: 0 20px 60px #14242c2e; }
 .modal-head { display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 22px; border-bottom: 1px solid #e2e9e6; }
 .modal-head h2 { margin-top: 6px; font-size: 22px; letter-spacing: -.05em; }
-.from-line { display: flex; gap: 15px; padding: 16px 0; color: #9ba5a8; font-size: 11px; }
+.from-line { display: flex; align-items: center; gap: 10px; padding: 16px 0; color: #9ba5a8; font-size: 11px; }
+.from-line-avatar { width: 24px; height: 24px; overflow: hidden; flex: none; border-radius: 50%; background: #1769ed; }
 .from-line strong { color: #354145; font-weight: 500; }
 .compose-modal label { display: block; margin-top: 17px; color: #829094; font: 10px "DM Mono"; letter-spacing: .08em; }
 .compose-modal input, .compose-modal textarea { display: block; width: 100%; padding: 9px 0; border: 0; border-bottom: 1px solid #dfe5e6; outline: 0; color: #243034; background: transparent; font: 12px "DM Sans"; resize: vertical; }
