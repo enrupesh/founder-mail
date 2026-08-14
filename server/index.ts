@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from "express";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { Webhook } from "svix";
 import { createServer as createViteServer } from "vite";
 
 const app = express();
@@ -37,6 +38,56 @@ async function writeMessages(messages: Mail[]) {
 function hasResendKey() {
   return Boolean(process.env.RESEND_API_KEY);
 }
+
+// Resend signs the raw request body. This route must be registered before
+// express.json() so the payload is not parsed before signature verification.
+app.post("/api/webhooks/resend", express.raw({ type: "application/json", limit: "2mb" }), async (req, res) => {
+  const secret = process.env.RESEND_WEBHOOK_SECRET;
+  if (!secret) {
+    return res.status(503).json({ error: "RESEND_WEBHOOK_SECRET is not configured." });
+  }
+
+  const payload = Buffer.isBuffer(req.body) ? req.body.toString("utf8") : String(req.body || "");
+  let body: { type?: string; data?: Record<string, unknown> };
+  try {
+    body = new Webhook(secret).verify(payload, {
+      "svix-id": String(req.header("svix-id") || ""),
+      "svix-timestamp": String(req.header("svix-timestamp") || ""),
+      "svix-signature": String(req.header("svix-signature") || ""),
+    }) as { type?: string; data?: Record<string, unknown> };
+  } catch {
+    return res.status(400).json({ error: "Invalid webhook signature." });
+  }
+
+  const data = (body.data || body) as Record<string, unknown>;
+  const to = Array.isArray(data.to) ? String(data.to[0] || sender) : String(data.to || sender);
+  const from = String(data.from || data.sender || "unknown sender");
+  const subject = String(data.subject || "(no subject)");
+  const text = String(data.text || data.body || "");
+
+  if (body.type && body.type !== "email.received") {
+    return res.json({ ok: true, ignored: true });
+  }
+
+  const messages = await readMessages();
+  const id = String(data.email_id || data.id || `received-${Date.now()}`);
+  if (!messages.some((message) => message.id === id)) {
+    messages.push({
+      id,
+      direction: "inbound",
+      from,
+      to,
+      subject,
+      text,
+      html: typeof data.html === "string" ? data.html : undefined,
+      timestamp: String(data.created_at || new Date().toISOString()),
+      status: "received",
+      read: false,
+    });
+    await writeMessages(messages);
+  }
+  res.json({ ok: true });
+});
 
 app.use(express.json({ limit: "2mb" }));
 
@@ -107,39 +158,6 @@ app.post("/api/send", async (req, res) => {
     read: true,
   });
   await writeMessages(messages);
-  res.json({ ok: true });
-});
-
-// Configure a Resend email.received webhook to point to this endpoint.
-app.post("/api/webhooks/resend", async (req, res) => {
-  const body = req.body as { type?: string; data?: Record<string, unknown> };
-  const data = (body.data || body) as Record<string, unknown>;
-  const to = Array.isArray(data.to) ? String(data.to[0] || sender) : String(data.to || sender);
-  const from = String(data.from || data.sender || "unknown sender");
-  const subject = String(data.subject || "(no subject)");
-  const text = String(data.text || data.body || "");
-
-  if (body.type && body.type !== "email.received") {
-    return res.json({ ok: true, ignored: true });
-  }
-
-  const messages = await readMessages();
-  const id = String(data.email_id || data.id || `received-${Date.now()}`);
-  if (!messages.some((message) => message.id === id)) {
-    messages.push({
-      id,
-      direction: "inbound",
-      from,
-      to,
-      subject,
-      text,
-      html: typeof data.html === "string" ? data.html : undefined,
-      timestamp: String(data.created_at || new Date().toISOString()),
-      status: "received",
-      read: false,
-    });
-    await writeMessages(messages);
-  }
   res.json({ ok: true });
 });
 
