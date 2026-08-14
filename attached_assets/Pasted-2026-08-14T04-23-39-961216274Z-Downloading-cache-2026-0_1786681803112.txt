@@ -1,0 +1,21 @@
+2026-08-14T04:23:39.961216274Z ==> Downloading cache...
+2026-08-14T04:23:39.989172463Z ==> Cloning from https://github.com/enrupesh/founder-mail
+2026-08-14T04:23:40.38583803Z ==> Checking out commit 06648a8d08c3274b75d89c80990db5b4b68476f1 in branch main
+2026-08-14T04:23:43.726191215Z ==> Downloaded 89MB in 3s. Extraction took 1s.
+2026-08-14T04:23:44.814458952Z ==> Requesting Node.js version 20
+2026-08-14T04:23:44.911478961Z ==> Using Node.js version 20.20.2 via /opt/render/project/src/.node-version
+2026-08-14T04:23:44.911491042Z ==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+2026-08-14T04:23:44.911612825Z ==> Installing Node.js version 20.20.2...
+2026-08-14T04:23:45.802030216Z ==> Running build command 'npm install --registry=https://registry.npmjs.org --no-audit --no-fund && npm run build'...
+2026-08-14T04:24:56.243365082Z npm error code ENOTFOUND
+2026-08-14T04:24:56.243500846Z npm error syscall getaddrinfo
+2026-08-14T04:24:56.243524091Z npm error errno ENOTFOUND
+2026-08-14T04:24:56.243568157Z npm error network request to http://package-firewall.replit.local/npm/content-type/-/content-type-2.1.0.tgz failed, reason: getaddrinfo ENOTFOUND package-firewall.replit.local
+2026-08-14T04:24:56.243619807Z npm error network This is a problem related to network connectivity.
+2026-08-14T04:24:56.243628377Z npm error network In most cases you are behind a proxy or have bad network settings.
+2026-08-14T04:24:56.243630498Z npm error network
+2026-08-14T04:24:56.243631952Z npm error network If you are behind a proxy, please make sure that the
+2026-08-14T04:24:56.243633466Z npm error network 'proxy' config is set properly.  See: 'npm help config'
+2026-08-14T04:24:56.244424641Z npm error A complete log of this run can be found in: /opt/render/.cache/_logs/2026-08-14T04_23_45_859Z-debug-0.log
+2026-08-14T04:24:56.273784798Z ==> Build failed 😞
+2026-08-14T04:24:56.273798778Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
