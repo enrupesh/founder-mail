@@ -10,6 +10,10 @@ npm run dev
 
 The app runs on port 5000. Add `RESEND_API_KEY` as a Replit Secret to enable sending.
 
+## Progressive Web App
+
+The production build is installable as a PWA from a supported browser. It includes the Rolebolt app icon, standalone display mode, and an offline application shell. Email data and send/sync actions still require a connection and are never cached by the service worker.
+
 ## Deploy on Render
 
 - **Service type:** Web Service
