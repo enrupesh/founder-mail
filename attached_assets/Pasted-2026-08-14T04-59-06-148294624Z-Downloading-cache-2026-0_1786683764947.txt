@@ -1,0 +1,21 @@
+2026-08-14T04:59:06.148294624Z ==> Downloading cache...
+2026-08-14T04:59:06.178903485Z ==> Cloning from https://github.com/enrupesh/founder-mail
+2026-08-14T04:59:06.661847794Z ==> Checking out commit e7cd24b4f12bb1734280aedb662089394c2aa8d6 in branch main
+2026-08-14T04:59:09.648585709Z ==> Downloaded 89MB in 2s. Extraction took 1s.
+2026-08-14T04:59:10.547079982Z ==> Requesting Node.js version 20
+2026-08-14T04:59:10.698278469Z ==> Using Node.js version 20.20.2 via /opt/render/project/src/.node-version
+2026-08-14T04:59:10.698293506Z ==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+2026-08-14T04:59:10.698378074Z ==> Installing Node.js version 20.20.2...
+2026-08-14T04:59:11.61385805Z ==> Running build command 'npm install --registry=https://registry.npmjs.org --no-audit --no-fund && npm run build'...
+2026-08-14T05:00:22.628805068Z npm error code ENOTFOUND
+2026-08-14T05:00:22.628958036Z npm error syscall getaddrinfo
+2026-08-14T05:00:22.628968275Z npm error errno ENOTFOUND
+2026-08-14T05:00:22.629020091Z npm error network request to http://package-firewall.replit.local/npm/content-type/-/content-type-2.1.0.tgz failed, reason: getaddrinfo ENOTFOUND package-firewall.replit.local
+2026-08-14T05:00:22.629063661Z npm error network This is a problem related to network connectivity.
+2026-08-14T05:00:22.629070931Z npm error network In most cases you are behind a proxy or have bad network settings.
+2026-08-14T05:00:22.62907294Z npm error network
+2026-08-14T05:00:22.629074724Z npm error network If you are behind a proxy, please make sure that the
+2026-08-14T05:00:22.62907624Z npm error network 'proxy' config is set properly.  See: 'npm help config'
+2026-08-14T05:00:22.661893266Z npm error A complete log of this run can be found in: /opt/render/.cache/_logs/2026-08-14T04_59_11_673Z-debug-0.log
+2026-08-14T05:00:22.705554837Z ==> Build failed 😞
+2026-08-14T05:00:22.705570483Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
