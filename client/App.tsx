@@ -39,6 +39,7 @@ function Icon({
     | "arrow"
     | "close"
     | "check"
+    | "trash"
     | "settings"
     | "refresh";
 }) {
@@ -50,6 +51,7 @@ function Icon({
     arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
     close: '<path d="m6 6 12 12M18 6 6 18"/>',
     check: '<path d="m5 12 4 4L19 6"/>',
+    trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
     refresh:
       '<path d="M20 11a8 8 0 0 0-14.9-4M4 5v4h4"/><path d="M4 13a8 8 0 0 0 14.9 4M20 19v-4h-4"/>',
     settings:
@@ -157,6 +159,7 @@ function App() {
   const [notice, setNotice] = useState("");
   const [sending, setSending] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const load = async (sync = false) => {
     setSyncing(sync);
@@ -203,6 +206,29 @@ function App() {
         current.map((item) => (item.id === message.id ? { ...item, read: true } : item)),
       );
       await fetch(`/api/messages/${message.id}/read`, { method: "POST" });
+    }
+  };
+
+  const deleteMessage = async () => {
+    if (!active || deleting) return;
+    if (!window.confirm(`Permanently delete "${active.subject}" from this dashboard?`)) return;
+
+    setDeleting(true);
+    setNotice("");
+    try {
+      const response = await fetch(`/api/messages/${encodeURIComponent(active.id)}`, { method: "DELETE" });
+      const result = await response.json();
+      if (!response.ok) {
+        setNotice(result.error || "Could not delete the email.");
+        return;
+      }
+      setMessages((current) => current.filter((message) => message.id !== active.id));
+      setActiveId(null);
+      setNotice("Email deleted permanently.");
+    } catch {
+      setNotice("Could not delete the email. Please try again.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -359,8 +385,8 @@ function App() {
             </div>
           )}
           {notice && (
-            <div className={`notice ${notice.includes("successfully") ? "success" : ""}`}>
-              <Icon name={notice.includes("successfully") ? "check" : "close"} />
+            <div className={`notice ${notice.includes("successfully") || notice.includes("permanently") ? "success" : ""}`}>
+              <Icon name={notice.includes("successfully") || notice.includes("permanently") ? "check" : "close"} />
               {notice}
             </div>
           )}
@@ -462,12 +488,15 @@ function App() {
                       ? active.text.split("\n").map((line, index) => <p key={index}>{line || "\u00a0"}</p>)
                       : <p className="detail-muted">The email was received by Resend. Use “Sync inbox” to fetch its full content.</p>}
                   </div>
-                  <div className="detail-footer">
+                   <div className="detail-footer">
                     {active.direction === "inbound" && (
                       <button onClick={() => openCompose({ to: active.from, subject: `Re: ${active.subject}`, text: "" })}>
                         Reply <Icon name="arrow" />
                       </button>
                     )}
+                    <button className="danger-button" onClick={() => void deleteMessage()} disabled={deleting}>
+                      <Icon name="trash" /> {deleting ? "Deleting…" : "Delete"}
+                    </button>
                   </div>
                 </>
               ) : (

@@ -10,6 +10,7 @@ const port = Number(process.env.PORT || 5000);
 const sender = "rolebolt@founder.rolebolt.tech";
 const websiteUrl = "https://www.rolebolt.tech/";
 const dataPath = path.resolve("data/messages.json");
+const deletedDataPath = path.resolve("data/deleted-messages.json");
 const accessCookieName = "founder_mail_access";
 const accessCookieMaxAge = 60 * 60 * 24 * 365;
 const unlockAttempts = new Map<string, { count: number; resetAt: number }>();
@@ -207,6 +208,20 @@ async function writeMessages(messages: Mail[]) {
   await fs.writeFile(dataPath, JSON.stringify(messages.slice(0, 100), null, 2));
 }
 
+async function readDeletedMessageIds() {
+  try {
+    const deleted = JSON.parse(await fs.readFile(deletedDataPath, "utf8")) as unknown;
+    return new Set(Array.isArray(deleted) ? deleted.filter((id): id is string => typeof id === "string") : []);
+  } catch {
+    return new Set<string>();
+  }
+}
+
+async function writeDeletedMessageIds(deletedIds: Set<string>) {
+  await fs.mkdir(path.dirname(deletedDataPath), { recursive: true });
+  await fs.writeFile(deletedDataPath, JSON.stringify([...deletedIds], null, 2));
+}
+
 async function resendRequest<T>(endpoint: string): Promise<T | null> {
   if (!hasResendKey()) return null;
 
@@ -250,6 +265,9 @@ function receivedMessageFrom(
 }
 
 async function saveReceivedMessage(message: Mail) {
+  const deletedIds = await readDeletedMessageIds();
+  if (deletedIds.has(message.id)) return false;
+
   const messages = await readMessages();
   const existing = messages.find((item) => item.id === message.id);
 
@@ -262,6 +280,7 @@ async function saveReceivedMessage(message: Mail) {
     messages.push(message);
   }
   await writeMessages(messages);
+  return true;
 }
 
 async function syncReceivedMessages() {
@@ -387,6 +406,19 @@ app.post("/api/messages/:id/read", async (req, res) => {
   message.read = true;
   await writeMessages(messages);
   res.json(message);
+});
+
+app.delete("/api/messages/:id", async (req, res) => {
+  const id = req.params.id;
+  const messages = await readMessages();
+  const message = messages.find((item) => item.id === id);
+  if (!message) return res.status(404).json({ error: "Message not found" });
+
+  const deletedIds = await readDeletedMessageIds();
+  deletedIds.add(id);
+  await writeDeletedMessageIds(deletedIds);
+  await writeMessages(messages.filter((item) => item.id !== id));
+  res.json({ ok: true, id });
 });
 
 app.post("/api/send", async (req, res) => {
