@@ -27,3 +27,7 @@ The app runs on port 5000. Add `RESEND_API_KEY` as a Replit Secret to enable sen
 The app stores the latest messages in `data/messages.json`; no database is required. Incoming mail is delivered to the inbox through the Resend webhook. Because Resend's `email.received` webhook contains metadata only, the app also retrieves the full received email from the Receiving API and can backfill messages when the inbox is refreshed.
 
 Set both `RESEND_API_KEY` and the webhook signing secret from Resend (`RESEND_WEBHOOK_SECRET`). The webhook endpoint only processes signed `POST` requests; a `GET` request is only a health check.
+
+## Private workspace gate
+
+In production, the app protects the mailbox behind a server-side password gate. Set `SITE_PASSWORD` as a secret. Visitors without the access cookie are redirected to `/blocked`; successful access is remembered in an HttpOnly, Secure cookie for one year. Webhook and health endpoints remain available for Resend and monitoring.

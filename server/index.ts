@@ -1,4 +1,5 @@
 import express, { type Request, type Response } from "express";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Webhook } from "svix";
@@ -8,6 +9,9 @@ const app = express();
 const port = Number(process.env.PORT || 5000);
 const sender = "rolebolt@founder.rolebolt.tech";
 const dataPath = path.resolve("data/messages.json");
+const accessCookieName = "founder_mail_access";
+const accessCookieMaxAge = 60 * 60 * 24 * 365;
+const unlockAttempts = new Map<string, { count: number; resetAt: number }>();
 
 type Mail = {
   id: string;
@@ -38,6 +42,97 @@ function hasResendKey() {
 
 function hasWebhookSecret() {
   return Boolean(process.env.RESEND_WEBHOOK_SECRET);
+}
+
+function hasSitePassword() {
+  return Boolean(process.env.SITE_PASSWORD);
+}
+
+function getCookies(req: Request) {
+  return Object.fromEntries(
+    String(req.headers.cookie || "")
+      .split(";")
+      .map((part) => part.trim().split("="))
+      .filter(([key, value]) => key && value)
+      .map(([key, ...value]) => [key, value.join("=")]),
+  );
+}
+
+function getAccessToken() {
+  if (!process.env.SITE_PASSWORD) return null;
+  return createHmac("sha256", process.env.SITE_PASSWORD)
+    .update("founder-mail-access-v1")
+    .digest("hex");
+}
+
+function hasAccess(req: Request) {
+  const expected = getAccessToken();
+  const received = getCookies(req)[accessCookieName];
+  if (!expected || !received) return false;
+
+  const expectedBuffer = Buffer.from(expected);
+  const receivedBuffer = Buffer.from(received);
+  return (
+    expectedBuffer.length === receivedBuffer.length &&
+    timingSafeEqual(expectedBuffer, receivedBuffer)
+  );
+}
+
+function publicRequest(req: Request) {
+  return (
+    req.path === "/blocked" ||
+    req.path === "/api/auth/unlock" ||
+    req.path === "/api/health" ||
+    req.path === "/api/webhooks/resend" ||
+    req.path === "/favicon.svg" ||
+    req.path === "/blocked-art.svg" ||
+    req.path.startsWith("/assets/") ||
+    req.path.startsWith("/@") ||
+    req.path.startsWith("/client/")
+  );
+}
+
+function siteGate(req: Request, res: Response, next: () => void) {
+  if (process.env.NODE_ENV !== "production" || publicRequest(req) || hasAccess(req)) {
+    return next();
+  }
+
+  if (!hasSitePassword()) {
+    return res.status(503).send("Founder Mail access is not configured.");
+  }
+
+  if (req.path.startsWith("/api/")) {
+    return res.status(401).json({ error: "Authentication required.", redirect: "/blocked" });
+  }
+  return res.redirect("/blocked");
+}
+
+function requestIp(req: Request) {
+  return req.ip || req.headers["x-forwarded-for"]?.toString().split(",")[0].trim() || "unknown";
+}
+
+function canAttemptUnlock(ip: string) {
+  const attempt = unlockAttempts.get(ip);
+  if (!attempt || attempt.resetAt <= Date.now()) {
+    unlockAttempts.delete(ip);
+    return true;
+  }
+  return attempt.count < 5;
+}
+
+function recordUnlockFailure(ip: string) {
+  const existing = unlockAttempts.get(ip);
+  if (!existing || existing.resetAt <= Date.now()) {
+    unlockAttempts.set(ip, { count: 1, resetAt: Date.now() + 15 * 60 * 1000 });
+  } else {
+    existing.count += 1;
+  }
+}
+
+function passwordMatches(password: string) {
+  const expected = Buffer.from(process.env.SITE_PASSWORD || "");
+  const received = Buffer.from(password);
+  return expected.length > 0 && expected.length === received.length && timingSafeEqual(expected, received);
 }
 
 async function readMessages(): Promise<Mail[]> {
@@ -170,7 +265,35 @@ app.post("/api/webhooks/resend", express.raw({ type: "application/json", limit: 
   res.json({ ok: true });
 });
 
+// The unlock endpoint is intentionally public; all other app APIs/pages are
+// gated below. Password values never get logged or sent back to the browser.
 app.use(express.json({ limit: "2mb" }));
+
+app.post("/api/auth/unlock", (req, res) => {
+  const ip = requestIp(req);
+  if (!hasSitePassword()) {
+    return res.status(503).json({ error: "Site access is not configured." });
+  }
+  if (!canAttemptUnlock(ip)) {
+    return res.status(429).json({ error: "Too many attempts. Try again in 15 minutes." });
+  }
+
+  const password = typeof req.body?.password === "string" ? req.body.password : "";
+  if (!passwordMatches(password)) {
+    recordUnlockFailure(ip);
+    return res.status(401).json({ error: "That password is not correct." });
+  }
+
+  unlockAttempts.delete(ip);
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  res.setHeader(
+    "Set-Cookie",
+    `${accessCookieName}=${getAccessToken()}; Max-Age=${accessCookieMaxAge}; Path=/; HttpOnly; SameSite=Lax${secure}`,
+  );
+  res.json({ ok: true, redirect: "/" });
+});
+
+app.use(siteGate);
 
 app.get("/api/status", (_req, res) => {
   res.json({

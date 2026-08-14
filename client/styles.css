@@ -14,6 +14,44 @@ button { cursor: pointer; }
 button:disabled { cursor: wait; opacity: .65; }
 svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
+.blocked-page {
+  min-height: 100vh; display: grid; place-items: center; padding: 28px;
+  background: #102e2c;
+}
+.blocked-card {
+  width: min(100%, 850px); display: grid; grid-template-columns: 1.05fr .95fr;
+  overflow: hidden; border: 1px solid #ffffff1f; border-radius: 18px; background: #fff;
+  box-shadow: 0 26px 80px #07171680;
+}
+.blocked-art-wrap { position: relative; min-height: 560px; overflow: hidden; background: #123b37; }
+.blocked-art { width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; filter: blur(7px); transform: scale(1.08); }
+.blocked-art-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, #102e2c24, #102e2c99); }
+.blocked-art-label {
+  position: absolute; left: 28px; bottom: 25px; color: #ffffffb8;
+  font: 500 9px "DM Mono"; letter-spacing: .16em;
+}
+.blocked-copy { display: flex; flex-direction: column; justify-content: center; padding: 54px 48px; }
+.blocked-copy .brand-mark { margin-bottom: 38px; }
+.blocked-kicker { color: #8c9b98; font: 500 9px "DM Mono"; letter-spacing: .16em; }
+.blocked-copy h1 { margin-top: 13px; font-size: clamp(29px, 4vw, 40px); letter-spacing: -.06em; }
+.blocked-copy p { margin-top: 13px; color: #7f8e8a; font-size: 13px; line-height: 1.6; }
+.unlock-form { margin-top: 31px; }
+.unlock-form label { display: block; color: #8a9995; font: 500 9px "DM Mono"; letter-spacing: .11em; }
+.unlock-form input {
+  width: 100%; margin-top: 9px; padding: 13px 14px; border: 1px solid #dce5e1; border-radius: 7px;
+  outline: 0; color: #1b2a2d; background: #fbfcfb; font-size: 13px;
+}
+.unlock-form input:focus { border-color: #167361; box-shadow: 0 0 0 3px #16736118; }
+.unlock-form button {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px; margin-top: 12px;
+  padding: 13px 15px; border: 0; border-radius: 7px; color: #fff; background: #167361;
+  font-size: 12px; font-weight: 600; transition: .2s ease;
+}
+.unlock-form button:hover { background: #0e5e50; transform: translateY(-1px); }
+.unlock-form button svg { width: 15px; height: 15px; }
+.unlock-error { margin-top: 10px; color: #a95049; font-size: 11px; }
+.blocked-copy small { margin-top: 25px; color: #a3aeaa; font-size: 10px; line-height: 1.5; }
+
 .app-shell { min-height: 100vh; display: flex; background: #f6f7f5; }
 .sidebar {
   width: 246px; flex: 0 0 246px; min-height: 100vh; padding: 28px 16px 20px;
@@ -177,6 +215,11 @@ code { padding: 2px 4px; border-radius: 3px; background: #f4ecd9; font: 10px "DM
   .message-detail { display: none; }
 }
 @media (max-width: 620px) {
+  .blocked-page { padding: 16px; }
+  .blocked-card { display: block; }
+  .blocked-art-wrap { min-height: 180px; }
+  .blocked-copy { padding: 32px 25px 30px; }
+  .blocked-copy .brand-mark { margin-bottom: 25px; }
   .app-shell { display: block; }
   .sidebar { width: 100%; min-height: auto; padding: 16px; border-right: 0; border-bottom: 1px solid #e2e8e5; }
   .brand { padding: 0 0 17px; }

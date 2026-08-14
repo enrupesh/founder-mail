@@ -68,7 +68,77 @@ function initials(value: string) {
   return (value.replace(/[^a-z]/gi, "").slice(0, 2) || "??").toUpperCase();
 }
 
+function BlockedPage() {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [unlocking, setUnlocking] = useState(false);
+
+  const unlock = async (event: FormEvent) => {
+    event.preventDefault();
+    setUnlocking(true);
+    setError("");
+    try {
+      const response = await fetch("/api/auth/unlock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        setError(result.error || "Unable to unlock Founder Mail.");
+        return;
+      }
+      window.location.replace(result.redirect || "/");
+    } catch {
+      setError("Unable to connect. Please try again.");
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
+  return (
+    <main className="blocked-page">
+      <div className="blocked-card">
+        <div className="blocked-art-wrap">
+          <img src="/blocked-art.svg" alt="" className="blocked-art" />
+          <div className="blocked-art-overlay" />
+          <span className="blocked-art-label">PRIVATE WORKSPACE</span>
+        </div>
+        <div className="blocked-copy">
+          <div className="brand-mark">R</div>
+          <span className="blocked-kicker">FOUNDER MAIL</span>
+          <h1>This workspace is private.</h1>
+          <p>Enter the access password to continue to the Rolebolt mailbox.</p>
+          <form className="unlock-form" onSubmit={unlock}>
+            <label htmlFor="site-password">ACCESS PASSWORD</label>
+            <input
+              id="site-password"
+              autoFocus
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter password"
+              required
+            />
+            {error && <div className="unlock-error" role="alert">{error}</div>}
+            <button type="submit" disabled={unlocking}>
+              {unlocking ? "Checking…" : "Unlock Founder Mail"}
+              <Icon name="arrow" />
+            </button>
+          </form>
+          <small>Your browser will remember this device after you unlock it.</small>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 function App() {
+  if (window.location.pathname === "/blocked") {
+    return <BlockedPage />;
+  }
+
   const [messages, setMessages] = useState<Mail[]>([]);
   const [status, setStatus] = useState<Status>({
     configured: false,
